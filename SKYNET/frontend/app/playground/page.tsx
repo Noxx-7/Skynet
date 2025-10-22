@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Brain, Send, Upload, Settings, Plus, X, Loader2, 
+import {
+  Brain, Send, Upload, Settings, Plus, X, Loader2,
   Sparkles, Code, Copy, Check, Download, Share2,
-  ChevronDown, FileText, Cpu, Zap, Home
+  ChevronDown, FileText, Cpu, Zap, Home, History as HistoryIcon
 } from 'lucide-react';
+import ChatHistory from '@/components/ChatHistory';
 
 interface Model {
   id: string;
@@ -14,6 +15,8 @@ interface Model {
   provider: string;
   type: string;
   description?: string;
+  available?: boolean;
+  checking?: boolean;
 }
 
 interface Message {
@@ -36,6 +39,10 @@ export default function Playground() {
   const [maxTokens, setMaxTokens] = useState(1000);
   const [apiKeys, setApiKeys] = useState<any>({});
   const [copied, setCopied] = useState(false);
+  const [modelHealthStatus, setModelHealthStatus] = useState<Record<string, boolean>>({});
+  const [checkingModels, setCheckingModels] = useState(false);
+  const [sessionId, setSessionId] = useState<string>(() => Date.now().toString());
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     fetchModels();
@@ -43,10 +50,19 @@ export default function Playground() {
     fetchApiKeys();
   }, []);
 
-  // Filter models to only show those with configured API keys
+  // Check model health when API keys change
+  useEffect(() => {
+    if (Object.keys(apiKeys).length > 0 && models.length > 0) {
+      checkModelHealth();
+    }
+  }, [apiKeys, models.length]);
+
+  // Filter models to only show those with configured API keys and working
   const filteredModels = models.filter(model => {
     if (model.type === 'custom') return true; // Always show custom models
-    return apiKeys[model.provider]; // Only show if API key is configured
+    if (!apiKeys[model.provider]) return false; // Hide if no API key
+    // Show if checking or confirmed available
+    return model.checking || modelHealthStatus[model.id] !== false;
   });
 
   // Update selected model when filtered models change
@@ -116,6 +132,41 @@ export default function Playground() {
     }
   };
 
+  const checkModelHealth = async () => {
+    setCheckingModels(true);
+    const healthResults: Record<string, boolean> = {};
+
+    // Check health for each model that has an API key
+    const checkPromises = models
+      .filter(model => model.type !== 'custom' && apiKeys[model.provider])
+      .map(async (model) => {
+        try {
+          const response = await fetch('/api/llm/check-model-health', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              provider: model.provider,
+              model_id: model.id.replace(`${model.provider}-`, '')
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            healthResults[model.id] = data.available === true;
+          } else {
+            healthResults[model.id] = false;
+          }
+        } catch (error) {
+          console.error(`Failed to check health for ${model.id}:`, error);
+          healthResults[model.id] = false;
+        }
+      });
+
+    await Promise.all(checkPromises);
+    setModelHealthStatus(healthResults);
+    setCheckingModels(false);
+  };
+
   const handleSendMessage = async () => {
     if (!input.trim() || !selectedModel) return;
 
@@ -125,7 +176,8 @@ export default function Playground() {
       timestamp: new Date()
     };
 
-    setMessages([...messages, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput('');
     setLoading(true);
 
@@ -152,14 +204,18 @@ export default function Playground() {
           content: data.response,
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, assistantMessage]);
+        const finalMessages = [...updatedMessages, assistantMessage];
+        setMessages(finalMessages);
+        await saveChatHistory(finalMessages);
       } else {
         const errorMessage: Message = {
           role: 'assistant',
           content: `Error: ${data.error || 'Failed to generate response. Please configure API keys for the model provider.'}`,
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, errorMessage]);
+        const finalMessages = [...updatedMessages, errorMessage];
+        setMessages(finalMessages);
+        await saveChatHistory(finalMessages);
       }
     } catch (error) {
       const errorMessage: Message = {
@@ -167,10 +223,53 @@ export default function Playground() {
         content: 'Failed to connect to the model. Please check your connection and try again.',
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      const finalMessages = [...updatedMessages, errorMessage];
+      setMessages(finalMessages);
+      await saveChatHistory(finalMessages);
     } finally {
       setLoading(false);
     }
+  };
+
+  const saveChatHistory = async (messagesToSave: Message[]) => {
+    if (!selectedModel || messagesToSave.length === 0) return;
+
+    try {
+      await fetch('/api/chat-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          model_id: selectedModel.id,
+          model_name: selectedModel.name,
+          messages: messagesToSave.map(m => ({
+            role: m.role,
+            content: m.content,
+            timestamp: m.timestamp.toISOString()
+          })),
+          title: messagesToSave[0]?.content.slice(0, 50) || 'New Chat'
+        })
+      });
+    } catch (err) {
+      console.error('Error saving chat history:', err);
+    }
+  };
+
+  const loadChat = (loadedSessionId: string, loadedMessages: any[]) => {
+    setSessionId(loadedSessionId);
+    setMessages(
+      loadedMessages.map((m: any) => ({
+        role: m.role,
+        content: m.content,
+        timestamp: new Date(m.timestamp)
+      }))
+    );
+    setShowHistory(false);
+  };
+
+  const startNewChat = () => {
+    setSessionId(Date.now().toString());
+    setMessages([]);
   };
 
   const handleModelUpload = async (file: File) => {
@@ -235,11 +334,26 @@ export default function Playground() {
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center space-x-4">
               <Brain className="w-8 h-8 text-purple-500" />
-              <span className="text-xl font-bold text-white">LLM Playground</span>
+              <span className="text-xl font-bold text-white">Skynet Playground</span>
               <span className="text-sm text-gray-400">(No Login Required)</span>
             </div>
             
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className={`p-2 transition ${
+                  showHistory ? 'text-purple-500' : 'text-gray-400 hover:text-white'
+                }`}
+                title="Chat History"
+              >
+                <HistoryIcon className="w-5 h-5" />
+              </button>
+              <button
+                onClick={startNewChat}
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition text-sm"
+              >
+                New Chat
+              </button>
               <button
                 onClick={() => setShowSettings(!showSettings)}
                 className="p-2 text-gray-400 hover:text-white transition"
@@ -266,6 +380,13 @@ export default function Playground() {
       </header>
 
       <div className="flex h-[calc(100vh-4rem)]">
+        {/* Chat History Sidebar */}
+        {showHistory && (
+          <div className="w-80 flex-shrink-0 bg-gray-900 border-r border-gray-800">
+            <ChatHistory onLoadChat={loadChat} currentSessionId={sessionId} />
+          </div>
+        )}
+
         {/* Sidebar */}
         <div className="w-80 border-r border-gray-800 bg-gray-900/50 p-4 overflow-y-auto">
           {/* Model Selection */}
@@ -281,27 +402,50 @@ export default function Playground() {
             </div>
             
             <div className="space-y-2">
-              {filteredModels.map((model) => (
-                <button
-                  key={model.id}
-                  onClick={() => handleSelectModel(model)}
-                  className={`w-full p-3 rounded-lg text-left transition ${
-                    selectedModel?.id === model.id
-                      ? 'bg-purple-600/20 border border-purple-500'
-                      : 'bg-gray-800/50 hover:bg-gray-800 border border-gray-700'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-white font-medium">{model.name}</div>
-                      <div className="text-xs text-gray-400">{model.provider || 'Custom'}</div>
+              {filteredModels.map((model) => {
+                const isChecking = checkingModels && model.type !== 'custom';
+                const isAvailable = model.type === 'custom' || modelHealthStatus[model.id] === true;
+                const isUnavailable = modelHealthStatus[model.id] === false;
+
+                return (
+                  <button
+                    key={model.id}
+                    onClick={() => handleSelectModel(model)}
+                    disabled={isUnavailable}
+                    className={`w-full p-3 rounded-lg text-left transition ${
+                      selectedModel?.id === model.id
+                        ? 'bg-purple-600/20 border border-purple-500'
+                        : isUnavailable
+                        ? 'bg-gray-800/30 border border-gray-700 opacity-50 cursor-not-allowed'
+                        : 'bg-gray-800/50 hover:bg-gray-800 border border-gray-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="text-white font-medium flex items-center">
+                          {model.name}
+                          {isChecking && (
+                            <Loader2 className="w-3 h-3 ml-2 text-gray-400 animate-spin" />
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-400">{model.provider || 'Custom'}</div>
+                        {isUnavailable && (
+                          <div className="text-xs text-red-400 mt-1">Unavailable</div>
+                        )}
+                        {isAvailable && !isChecking && model.type !== 'custom' && (
+                          <div className="text-xs text-green-400 mt-1">✓ Available</div>
+                        )}
+                      </div>
+                      {model.type === 'custom' && (
+                        <Cpu className="w-4 h-4 text-purple-400" />
+                      )}
+                      {isAvailable && model.type !== 'custom' && (
+                        <Zap className="w-4 h-4 text-green-400" />
+                      )}
                     </div>
-                    {model.type === 'custom' && (
-                      <Cpu className="w-4 h-4 text-purple-400" />
-                    )}
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
               
               {filteredModels.length === 0 && (
                 <div className="text-gray-400 text-center py-8">

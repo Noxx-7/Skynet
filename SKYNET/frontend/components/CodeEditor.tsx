@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Editor from '@monaco-editor/react'
 import { useStore } from '@/lib/store'
-import { Play, Save, Share2, FileUp, BarChart3, FlaskConical, CheckCircle, XCircle } from 'lucide-react'
+import { Play, Save, Share2, FileUp, BarChart3, FlaskConical, CheckCircle, XCircle, Sparkles, Send, Loader2 } from 'lucide-react'
 import CodeAnalysisSidebar from './CodeAnalysisSidebar'
 
 export default function CodeEditor() {
-  const [code, setCode] = useState('# Your LLM SDK code here\n\nclass MyLLMModel:\n    def __init__(self):\n        self.name = "my-custom-model"\n    \n    def generate(self, prompt: str) -> str:\n        # Implement your model logic\n        return f"Response to: {prompt}"')
+  const [code, setCode] = useState('# Your Skynet SDK code here\n\nclass MySkynetModel:\n    def __init__(self):\n        self.name = "my-custom-model"\n    \n    def generate(self, prompt: str) -> str:\n        # Implement your model logic\n        return f"Response to: {prompt}"')
   const [isRunning, setIsRunning] = useState(false)
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [optimizedCode, setOptimizedCode] = useState<string | null>(null)
@@ -19,6 +19,38 @@ export default function CodeEditor() {
   const [isGeneratingTests, setIsGeneratingTests] = useState(false)
   const [isRunningTests, setIsRunningTests] = useState(false)
   const editorRef = useRef<any>(null)
+  const [showAIAssistant, setShowAIAssistant] = useState(false)
+  const [aiInput, setAiInput] = useState('')
+  const [aiMessages, setAiMessages] = useState<Array<{role: string, content: string}>>([])
+  const [isAiLoading, setIsAiLoading] = useState(false)
+  const [availableModels, setAvailableModels] = useState<any[]>([])
+  const [selectedAiModel, setSelectedAiModel] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchAvailableModels()
+  }, [])
+
+  const fetchAvailableModels = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/llm/api-keys')
+      if (response.ok) {
+        const apiKeys = await response.json()
+        const modelsResponse = await fetch('http://localhost:8000/models/list')
+        if (modelsResponse.ok) {
+          const models = await modelsResponse.json()
+          const filteredModels = models.filter((m: any) =>
+            apiKeys.some((key: any) => key.provider === m.provider && key.is_active)
+          )
+          setAvailableModels(filteredModels)
+          if (filteredModels.length > 0 && !selectedAiModel) {
+            setSelectedAiModel(filteredModels[0].id)
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching models:', err)
+    }
+  }
 
   const handleRun = async () => {
     setIsRunning(true)
@@ -113,6 +145,51 @@ export default function CodeEditor() {
     }
   }
 
+  const handleAiAssist = async () => {
+    if (!aiInput.trim() || !selectedAiModel) return
+
+    const userMessage = { role: 'user', content: aiInput }
+    setAiMessages(prev => [...prev, userMessage])
+    setAiInput('')
+    setIsAiLoading(true)
+
+    try {
+      const contextPrompt = `You are a code assistant. The user is working on this code:\n\n${code}\n\nUser question: ${aiInput}\n\nProvide helpful suggestions, explanations, or code improvements.`
+
+      const response = await fetch('http://localhost:8000/llm/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: contextPrompt,
+          model_id: selectedAiModel,
+          temperature: 0.7,
+          max_tokens: 1000
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success) {
+          setAiMessages(prev => [...prev, { role: 'assistant', content: data.response }])
+        } else {
+          setAiMessages(prev => [...prev, { role: 'assistant', content: `Error: ${data.error}` }])
+        }
+      }
+    } catch (err) {
+      console.error('Error calling AI:', err)
+      setAiMessages(prev => [...prev, { role: 'assistant', content: 'Failed to get AI response' }])
+    } finally {
+      setIsAiLoading(false)
+    }
+  }
+
+  const applyAiSuggestion = (suggestion: string) => {
+    const codeMatch = suggestion.match(/```(?:python|javascript|typescript)?\n([\s\S]*?)```/)
+    if (codeMatch) {
+      setCode(codeMatch[1].trim())
+    }
+  }
+
   return (
     <>
       <div className="bg-white rounded-lg shadow-lg h-full flex">
@@ -130,6 +207,17 @@ export default function CodeEditor() {
                   className="hidden"
                 />
               </label>
+              <button
+                onClick={() => setShowAIAssistant(!showAIAssistant)}
+                className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
+                  showAIAssistant
+                    ? 'bg-purple-100 text-purple-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI Assistant
+              </button>
               <button
                 onClick={() => setShowAnalysis(!showAnalysis)}
                 className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
@@ -184,6 +272,106 @@ export default function CodeEditor() {
             />
           </div>
         </div>
+
+        {showAIAssistant && (
+          <div className="w-96 flex-shrink-0 border-l border-gray-200 flex flex-col bg-gray-50">
+            <div className="p-4 border-b border-gray-200 bg-white">
+              <h3 className="text-lg font-semibold flex items-center">
+                <Sparkles className="w-5 h-5 mr-2 text-purple-600" />
+                AI Code Assistant
+              </h3>
+              {availableModels.length > 0 && (
+                <select
+                  value={selectedAiModel || ''}
+                  onChange={(e) => setSelectedAiModel(e.target.value)}
+                  className="mt-2 w-full border border-gray-300 rounded px-2 py-1 text-sm"
+                >
+                  {availableModels.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {model.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {aiMessages.length === 0 ? (
+                <div className="text-center text-gray-500 mt-8">
+                  <Sparkles className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p className="text-sm">Ask me anything about your code!</p>
+                  <div className="mt-4 text-xs text-left space-y-2 bg-white p-3 rounded-lg">
+                    <p className="font-semibold">Try asking:</p>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      <li>Explain this code</li>
+                      <li>How can I optimize this?</li>
+                      <li>Add error handling</li>
+                      <li>Refactor this function</li>
+                    </ul>
+                  </div>
+                </div>
+              ) : (
+                aiMessages.map((msg, idx) => (
+                  <div
+                    key={idx}
+                    className={`rounded-lg p-3 ${
+                      msg.role === 'user'
+                        ? 'bg-purple-100 ml-8'
+                        : 'bg-white border border-gray-200 mr-8'
+                    }`}
+                  >
+                    <div className="text-xs font-semibold mb-1 text-gray-600">
+                      {msg.role === 'user' ? 'You' : 'AI Assistant'}
+                    </div>
+                    <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                    {msg.role === 'assistant' && msg.content.includes('```') && (
+                      <button
+                        onClick={() => applyAiSuggestion(msg.content)}
+                        className="mt-2 text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+                      >
+                        Apply Code
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
+              {isAiLoading && (
+                <div className="bg-white border border-gray-200 rounded-lg p-3 mr-8">
+                  <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-200 bg-white">
+              {availableModels.length === 0 ? (
+                <p className="text-xs text-gray-500">No AI models available. Please configure API keys.</p>
+              ) : (
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={aiInput}
+                    onChange={(e) => setAiInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleAiAssist()
+                      }
+                    }}
+                    placeholder="Ask about your code..."
+                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <button
+                    onClick={handleAiAssist}
+                    disabled={!aiInput.trim() || isAiLoading}
+                    className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {showAnalysis && (
           <div className="w-96 flex-shrink-0">

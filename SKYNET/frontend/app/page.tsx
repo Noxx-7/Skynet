@@ -37,7 +37,7 @@ export default function Home() {
   const features = [
     {
       icon: Brain,
-      title: "Multi-LLM Support",
+      title: "Multi-Skynet Support",
       description: "Use OpenAI, Claude, Gemini, or upload your custom models",
       color: "from-[#862633] to-[#a83245]"
     },
@@ -75,7 +75,7 @@ export default function Home() {
 
   const quickActions = [
     {
-      title: "LLM Playground",
+      title: "Skynet Playground",
       description: "Test and interact with AI models",
       icon: Sparkles,
       href: "/playground",
@@ -146,7 +146,7 @@ export default function Home() {
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
             <span className="bg-gradient-to-r from-[#862633] via-[#a83245] to-[#c44857] bg-clip-text text-transparent">
-              Your Complete LLM
+              Your Complete Skynet
             </span>
             <br />
             <span className={darkMode ? 'text-white' : 'text-gray-900'}>Development Platform</span>

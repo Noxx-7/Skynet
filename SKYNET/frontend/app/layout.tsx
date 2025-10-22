@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Axis Skynet',
-  description: 'Complete LLM development platform with Python code editor and real-time collaboration',
+  description: 'Complete Skynet development platform with Python code editor and real-time collaboration',
 }
 
 export default function RootLayout({

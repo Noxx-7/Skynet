@@ -90,8 +90,8 @@ class ModelResponse(ModelBase):
     class Config:
         from_attributes = True
 
-# LLM Generation schemas
-class LLMGenerateRequest(BaseModel):
+# Skynet Generation schemas
+class SkynetGenerateRequest(BaseModel):
     prompt: str
     model_id: str
     temperature: float = 0.7
@@ -99,7 +99,7 @@ class LLMGenerateRequest(BaseModel):
     stream: bool = False
     parameters: Optional[Dict[str, Any]] = {}
 
-class LLMGenerateResponse(BaseModel):
+class SkynetGenerateResponse(BaseModel):
     success: bool
     response: Optional[str]
     usage: Optional[Dict[str, Any]]

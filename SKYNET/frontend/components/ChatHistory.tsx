@@ -75,27 +75,27 @@ export default function ChatHistory({ onLoadChat, currentSessionId }: ChatHistor
 
   if (loading) {
     return (
-      <div className="h-full bg-white border-r border-gray-200 p-4">
+      <div className="h-full bg-gray-900 p-4">
         <div className="flex items-center space-x-2 mb-4">
-          <History className="w-5 h-5 text-gray-600" />
-          <h3 className="font-semibold">Chat History</h3>
+          <History className="w-5 h-5 text-gray-400" />
+          <h3 className="font-semibold text-white">Chat History</h3>
         </div>
-        <p className="text-sm text-gray-500">Loading...</p>
+        <p className="text-sm text-gray-400">Loading...</p>
       </div>
     )
   }
 
   return (
-    <div className="h-full bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-4 border-b border-gray-200">
+    <div className="h-full bg-gray-900 flex flex-col">
+      <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
-            <History className="w-5 h-5 text-gray-600" />
-            <h3 className="font-semibold">Chat History</h3>
+            <History className="w-5 h-5 text-gray-400" />
+            <h3 className="font-semibold text-white">Chat History</h3>
           </div>
           <button
             onClick={loadChatHistory}
-            className="text-xs text-blue-600 hover:text-blue-700"
+            className="text-xs text-purple-400 hover:text-purple-300"
           >
             Refresh
           </button>
@@ -105,29 +105,29 @@ export default function ChatHistory({ onLoadChat, currentSessionId }: ChatHistor
 
       <div className="flex-1 overflow-y-auto">
         {error && (
-          <div className="p-4 text-sm text-red-600 bg-red-50 border-b border-red-100">
+          <div className="p-4 text-sm text-red-400 bg-red-900/20 border-b border-red-800">
             {error}
           </div>
         )}
 
         {chatSessions.length === 0 ? (
           <div className="p-4 text-center">
-            <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No chat history yet</p>
-            <p className="text-xs text-gray-400 mt-1">Start a conversation to see it here</p>
+            <MessageSquare className="w-12 h-12 text-gray-700 mx-auto mb-2" />
+            <p className="text-sm text-gray-400">No chat history yet</p>
+            <p className="text-xs text-gray-500 mt-1">Start a conversation to see it here</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-800">
             {chatSessions.map((chat) => (
               <div
                 key={chat.id}
-                className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
-                  currentSessionId === chat.session_id ? 'bg-blue-50 border-l-4 border-blue-600' : ''
+                className={`p-4 hover:bg-gray-800/50 cursor-pointer transition-colors ${
+                  currentSessionId === chat.session_id ? 'bg-purple-900/20 border-l-4 border-purple-500' : ''
                 }`}
                 onClick={() => onLoadChat(chat.session_id, chat.messages)}
               >
                 <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-medium text-sm text-gray-900 line-clamp-1 flex-1">
+                  <h4 className="font-medium text-sm text-white line-clamp-1 flex-1">
                     {chat.title || 'Untitled Chat'}
                   </h4>
                   <button
@@ -135,20 +135,20 @@ export default function ChatHistory({ onLoadChat, currentSessionId }: ChatHistor
                       e.stopPropagation()
                       deleteChat(chat.session_id)
                     }}
-                    className="text-gray-400 hover:text-red-600 transition-colors"
+                    className="text-gray-500 hover:text-red-400 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-xs text-gray-600 truncate">
+                  <p className="text-xs text-gray-400 truncate">
                     Model: {chat.model_name}
                   </p>
                   <p className="text-xs text-gray-500 truncate">
                     {chat.messages.length} messages
                   </p>
-                  <div className="flex items-center space-x-1 text-xs text-gray-400">
+                  <div className="flex items-center space-x-1 text-xs text-gray-500">
                     <Clock className="w-3 h-3" />
                     <span>{formatDate(chat.updated_at || chat.created_at)}</span>
                   </div>

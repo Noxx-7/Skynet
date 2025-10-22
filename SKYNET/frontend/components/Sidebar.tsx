@@ -16,7 +16,7 @@ export default function Sidebar() {
   return (
     <div className="w-64 bg-white border-r border-gray-200 h-full">
       <div className="p-6">
-        <h2 className="text-lg font-semibold text-gray-800">LLM Playground</h2>
+        <h2 className="text-lg font-semibold text-gray-800">Skynet Playground</h2>
       </div>
       
       <nav className="mt-6">

@@ -18,7 +18,7 @@ from models import (
 )
 from schemas import (
     APIKeyCreate, APIKeyResponse, ModelCreate, ModelResponse,
-    LLMGenerateRequest, LLMGenerateResponse,
+    SkynetGenerateRequest, SkynetGenerateResponse,
     CodeExecutionRequest, CodeExecutionResponse,
     CodeAnalysisRequest, CodeAnalysisResponse,
     AutoTestGenerationRequest, AutoTestGenerationResponse,
@@ -30,7 +30,7 @@ from schemas import (
     ChatHistoryCreate, ChatHistoryUpdate, ChatHistoryResponse,
     CodeOptimizationRequest, CodeOptimizationResponse
 )
-from llm_providers import LLMProviderFactory, ModelProvider, ModelRegistry
+from llm_providers import SkynetProviderFactory, ModelProvider, ModelRegistry
 from code_testing import (
     CodeAnalyzer, UnitTestGenerator, CodeExecutor, 
     CodeProfiler, IntegrityChecker
@@ -300,7 +300,7 @@ async def generate_llm_response(
 
                 # Check if the provider returned an error
                 if not response.get("success", True):
-                    return LLMGenerateResponse(
+                    return SkynetGenerateResponse(
                         success=False,
                         response=None,
                         usage=None,
@@ -309,7 +309,7 @@ async def generate_llm_response(
                         execution_time=0.0
                     )
 
-                return LLMGenerateResponse(
+                return SkynetGenerateResponse(
                     success=True,
                     response=response.get("response", ""),
                     usage=response.get("usage"),
@@ -318,7 +318,7 @@ async def generate_llm_response(
                     execution_time=0.0
                 )
             except Exception as e:
-                return LLMGenerateResponse(
+                return SkynetGenerateResponse(
                     success=False,
                     response=None,
                     usage=None,
@@ -327,7 +327,7 @@ async def generate_llm_response(
                     execution_time=0.0
                 )
         else:
-            return LLMGenerateResponse(
+            return SkynetGenerateResponse(
                 success=False,
                 response=None,
                 usage=None,
@@ -340,7 +340,7 @@ async def generate_llm_response(
     if model and model.type == "custom":
         # Handle custom model execution
         response = await execute_custom_model(model, request.prompt)
-        return LLMGenerateResponse(
+        return SkynetGenerateResponse(
             success=True,
             response=response,
             usage=None,  # Add usage field
@@ -349,7 +349,7 @@ async def generate_llm_response(
             execution_time=0.0
         )
     
-    return LLMGenerateResponse(
+    return SkynetGenerateResponse(
         success=False,
         response=None,
         usage=None,  # Add usage field

@@ -1,0 +1,10 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/code-editor/page": "app/code-editor/page.js",
+  "/collaborate/page": "app/collaborate/page.js",
+  "/page": "app/page.js",
+  "/login/page": "app/login/page.js",
+  "/models/page": "app/models/page.js",
+  "/register/page": "app/register/page.js",
+  "/playground/page": "app/playground/page.js"
+}

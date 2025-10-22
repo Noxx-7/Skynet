@@ -15,8 +15,8 @@ class ModelProvider(Enum):
     COHERE = "cohere"
     MISTRAL = "mistral"
 
-class LLMProvider(ABC):
-    """Abstract base class for LLM providers"""
+class SkynetProvider(ABC):
+    """Abstract base class for Skynet providers"
 
     @abstractmethod
     async def generate(self, prompt: str, **kwargs) -> Dict[str, Any]:
@@ -51,7 +51,7 @@ class LLMProvider(ABC):
                 "error": str(e)
             }
 
-class OpenAIProvider(LLMProvider):
+class OpenAIProvider(SkynetProvider):
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.base_url = "https://api.openai.com/v1"
@@ -137,7 +137,7 @@ class OpenAIProvider(LLMProvider):
     def validate_api_key(self) -> bool:
         return bool(self.api_key and self.api_key.startswith("sk-"))
 
-class AnthropicProvider(LLMProvider):
+class AnthropicProvider(SkynetProvider):
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.base_url = "https://api.anthropic.com/v1"
@@ -212,7 +212,7 @@ class AnthropicProvider(LLMProvider):
     def validate_api_key(self) -> bool:
         return bool(self.api_key and len(self.api_key) > 20)
 
-class GeminiProvider(LLMProvider):
+class GeminiProvider(SkynetProvider):
     def __init__(self, api_key: str):
         self.api_key = api_key
         self.base_url = "https://generativelanguage.googleapis.com/v1beta"
@@ -288,7 +288,7 @@ class GeminiProvider(LLMProvider):
     def validate_api_key(self) -> bool:
         return bool(self.api_key and len(self.api_key) > 20)
 
-class CustomModelProvider(LLMProvider):
+class CustomModelProvider(SkynetProvider):
     """Provider for custom uploaded models"""
     
     def __init__(self, model_path: str, model_type: str = "transformers"):
@@ -316,11 +316,11 @@ class CustomModelProvider(LLMProvider):
     def validate_api_key(self) -> bool:
         return True
 
-class LLMProviderFactory:
-    """Factory to create LLM provider instances"""
-    
+class SkynetProviderFactory:
+    """Factory to create Skynet provider instances"""
+
     @staticmethod
-    def create_provider(provider_type: ModelProvider, api_key: Optional[str] = None, **kwargs) -> LLMProvider:
+    def create_provider(provider_type: ModelProvider, api_key: Optional[str] = None, **kwargs) -> SkynetProvider:
         if provider_type == ModelProvider.OPENAI:
             return OpenAIProvider(api_key)
         elif provider_type == ModelProvider.ANTHROPIC:

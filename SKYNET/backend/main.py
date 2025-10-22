@@ -21,11 +21,11 @@ from schemas import (
 from websocket_manager import ConnectionManager
 
 # Import the simplified no-auth API routers
-from api_routes_no_auth import llm_router, code_router, model_router, collab_router, market_router, chat_history_router
+from api_routes_no_auth import skynet_router, code_router, model_router, collab_router, market_router, chat_history_router
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="LLM Playground API", version="2.0.0", description="Complete LLM IDE Platform - No Auth")
+app = FastAPI(title="Skynet Playground API", version="2.0.0", description="Complete Skynet IDE Platform - No Auth")
 
 # Allow all origins for demo purposes
 app.add_middleware(
@@ -39,7 +39,7 @@ app.add_middleware(
 manager = ConnectionManager()
 
 # Include all the simplified routers
-app.include_router(llm_router, prefix="/llm", tags=["LLM"])
+app.include_router(skynet_router, prefix="/llm", tags=["Skynet"])
 app.include_router(code_router, prefix="/code", tags=["Code Testing"])
 app.include_router(model_router, prefix="/models", tags=["Models"])
 app.include_router(collab_router, prefix="/collaboration", tags=["Collaboration"])
@@ -113,10 +113,10 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
 @app.get("/")
 async def root():
     return {
-        "message": "LLM Playground API v2.0 - No Authentication Required", 
+        "message": "Skynet Playground API v2.0 - No Authentication Required", 
         "status": "running",
         "features": [
-            "Multi-LLM Support (OpenAI, Anthropic, Gemini)",
+            "Multi-Model Support (OpenAI, Anthropic, Gemini)",
             "Custom Model Upload",
             "Auto Unit Test Generation",
             "Code Performance Profiling",
@@ -136,7 +136,7 @@ async def health_check():
         "auth_required": False,
         "services": {
             "database": "connected",
-            "llm_providers": ["openai", "anthropic", "gemini", "custom"],
+            "skynet_providers": ["openai", "anthropic", "gemini", "custom"],
             "features": {
                 "code_testing": "enabled",
                 "model_upload": "enabled",

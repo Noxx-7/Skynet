@@ -147,7 +147,7 @@ print(fibonacci(10))
                 className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition flex items-center"
               >
                 <Brain className="w-4 h-4 mr-2" />
-                LLM Playground
+                Skynet Playground
               </button>
               <button
                 onClick={() => router.push('/')}

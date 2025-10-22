@@ -1,0 +1,10 @@
+{
+  "/_not-found/page": "/_not-found",
+  "/code-editor/page": "/code-editor",
+  "/collaborate/page": "/collaborate",
+  "/page": "/",
+  "/login/page": "/login",
+  "/models/page": "/models",
+  "/register/page": "/register",
+  "/playground/page": "/playground"
+}
