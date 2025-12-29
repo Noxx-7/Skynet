@@ -111,9 +111,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center space-x-2">
-              <img src="/skynet-logo.jpg" alt="Axis Skynet Logo" className="w-8 h-8 object-contain" />
+              <img src="/skynet-logo.jpg" alt="Skynet Logo" className="w-8 h-8 object-contain" />
               <span className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                Axis Skynet
+                Skynet
               </span>
             </div>
             
@@ -257,7 +257,7 @@ export default function Home() {
       {/* Footer */}
       <footer className={`border-t py-8 px-4 ${darkMode ? 'border-gray-800' : 'border-gray-300'}`}>
         <div className="max-w-7xl mx-auto text-center">
-          <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>&copy; 2025 Axis Skynet. Built with Next.js and FastAPI. Open for everyone.</p>
+          <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>&copy; 2025 Skynet. Built with Next.js and FastAPI. Open for everyone.</p>
         </div>
       </footer>
     </div>
