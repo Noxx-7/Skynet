@@ -359,10 +359,8 @@ docker-compose up --build
 ---
 
 ## 📄 License
-MIT License - See LICENSE file for details
+Apache License - See LICENSE file for details
 
 ---
 
 **Built with ❤️ for the AI development community**
-
-*Version 2.0.0 | Production Ready | No Login Required*
