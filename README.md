@@ -8,10 +8,11 @@
 A comprehensive web-based IDE platform for testing, developing, and collaborating with Large Language Models. Test API-based models (OpenAI, Claude, Gemini) or upload custom models—all without requiring high-performance hardware or authentication.
 
 **🎉 No login required—jump right in and start building!**
+<img width="1450" height="775" alt="homepage" src="https://github.com/user-attachments/assets/c30e48a5-8b68-4c2a-ba93-79758385f525" />
+<img width="1440" height="786" alt="chat" src="https://github.com/user-attachments/assets/897e4038-8d2b-41eb-80ce-1076516f1b1a" />
+<img width="457" height="185" alt="COde" src="https://github.com/user-attachments/assets/44265bb0-f8b1-4f23-bec7-4835b64149e7" />
 
-<img width="1462" height="880" alt="homepage" src="https://github.com/user-attachments/assets/5b624fe7-1bb4-4f6b-97b1-db9ca963e060" />
-<img width="1449" height="873" alt="chat" src="https://github.com/user-attachments/assets/019587d8-7e02-4411-bcc2-b326f8d22c5f" />
-<img width="1461" height="867" alt="Screenshot 2025-12-29 at 12 58 11 PM" src="https://github.com/user-attachments/assets/0955811d-d6be-4560-b4ca-b6dccfb824f7" />
+
 
 
 ---
