@@ -9,8 +9,8 @@ A comprehensive web-based IDE platform for testing, developing, and collaboratin
 
 **🎉 No login required—jump right in and start building!**
 <img width="1450" height="775" alt="homepage" src="https://github.com/user-attachments/assets/c30e48a5-8b68-4c2a-ba93-79758385f525" />
-<img width="400" height="226" alt="chat" src="https://github.com/user-attachments/assets/897e4038-8d2b-41eb-80ce-1076516f1b1a" />
-<img width="400" height="226" alt="COde" src="https://github.com/user-attachments/assets/44265bb0-f8b1-4f23-bec7-4835b64149e7" />
+<img width="410" height="226" alt="chat" src="https://github.com/user-attachments/assets/897e4038-8d2b-41eb-80ce-1076516f1b1a" />
+<img width="410" height="226" alt="COde" src="https://github.com/user-attachments/assets/44265bb0-f8b1-4f23-bec7-4835b64149e7" />
 
 
 
